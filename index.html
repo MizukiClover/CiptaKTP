@@ -107,9 +107,6 @@
       text-align: center;
       font-size: 0.9em;
     }
-    .telegraph-upload {
-      display: none;
-    }
     .telegraph-result {
       border: 1px solid #444;
       padding: 10px;
@@ -131,7 +128,7 @@
     .upload-button:hover {
       background-color: #0056b3;
     }
-    iframe {
+    #fileInput {
       display: none;
     }
   </style>
@@ -147,17 +144,11 @@
         <span>Preview Foto</span>
       </div>
       
-      <!-- Form Telegraph untuk Upload -->
-      <form id="telegraphForm" method="post" action="https://telegra.ph/upload" enctype="multipart/form-data" target="uploadFrame">
-        <label for="file0" class="upload-button">Pilih & Upload Foto</label>
-        <input id="file0" name="file0" type="file" accept="image/*" class="telegraph-upload">
-      </form>
+      <label for="fileInput" class="upload-button">Pilih & Upload Foto</label>
+      <input type="file" id="fileInput" accept="image/*">
       
       <div id="uploadStatus" class="upload-status">Silakan pilih foto</div>
       <div id="telegraphResult" class="telegraph-result"></div>
-      
-      <!-- iframe untuk target upload -->
-      <iframe name="uploadFrame" id="uploadFrame"></iframe>
     </div>
 
     <!-- Form KTP -->
@@ -199,18 +190,16 @@
   <script>
     // Elemen DOM
     const form = document.getElementById('ktpForm');
-    const telegraphForm = document.getElementById('telegraphForm');
     const resultDiv = document.getElementById('result');
     const photoPreview = document.getElementById('photoPreview');
     const photoUrl = document.getElementById('photoUrl');
     const uploadStatus = document.getElementById('uploadStatus');
     const telegraphResult = document.getElementById('telegraphResult');
     const submitBtn = document.getElementById('submitBtn');
-    const fileInput = document.getElementById('file0');
-    const uploadFrame = document.getElementById('uploadFrame');
+    const fileInput = document.getElementById('fileInput');
 
-    // Preview gambar saat dipilih
-    fileInput.addEventListener('change', function(e) {
+    // Menangani upload foto ke Telegraph dengan implementasi baru
+    fileInput.addEventListener('change', async function(e) {
       const file = this.files[0];
       if (!file) return;
       
@@ -221,43 +210,65 @@
       };
       reader.readAsDataURL(file);
       
-      // Mengirim form Telegraph secara otomatis
+      // Mulai proses upload
       uploadStatus.innerHTML = '<div class="loading-spinner"></div> Mengupload foto...';
-      telegraphForm.submit();
-    });
-
-    // Menangkap hasil upload dari iframe
-    uploadFrame.addEventListener('load', function() {
+      
       try {
-        const frameContent = uploadFrame.contentDocument || uploadFrame.contentWindow.document;
-        const responseText = frameContent.body.textContent;
+        // Membaca file sebagai ArrayBuffer
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = new Uint8Array(arrayBuffer);
         
-        if (responseText && responseText.includes('src')) {
-          // Parse respons JSON dari Telegraph
-          const response = JSON.parse(responseText);
+        // Upload ke Telegraph
+        const telegraphUrl = await uploadToTelegraph(buffer);
+        
+        if (telegraphUrl) {
+          // Simpan URL ke input tersembunyi
+          photoUrl.value = telegraphUrl;
           
-          if (response && response[0] && response[0].src) {
-            const imageUrl = 'https://telegra.ph' + response[0].src;
-            
-            // Simpan URL ke input tersembunyi
-            photoUrl.value = imageUrl;
-            
-            // Tampilkan URL dan aktifkan tombol submit
-            telegraphResult.style.display = 'block';
-            telegraphResult.innerHTML = `URL Foto: <strong>${imageUrl}</strong>`;
-            uploadStatus.textContent = '✅ Foto berhasil diupload!';
-            submitBtn.disabled = false;
-          } else {
-            throw new Error('Format respons tidak valid');
-          }
+          // Tampilkan URL dan aktifkan tombol submit
+          telegraphResult.style.display = 'block';
+          telegraphResult.innerHTML = `URL Foto: <strong>${telegraphUrl}</strong>`;
+          uploadStatus.textContent = '✅ Foto berhasil diupload!';
+          submitBtn.disabled = false;
         } else {
-          throw new Error('Respons kosong atau format tidak sesuai');
+          throw new Error('Gagal mendapatkan URL foto');
         }
       } catch (error) {
-        console.error('Error processing upload response:', error);
-        uploadStatus.textContent = '❌ Gagal mendapatkan URL foto. Silakan coba lagi.';
+        console.error('Error uploading image:', error);
+        uploadStatus.textContent = '❌ Gagal mengupload foto. Silakan coba lagi.';
       }
     });
+
+    // Fungsi untuk upload ke Telegraph
+    async function uploadToTelegraph(fileBuffer) {
+      try {
+        // Buat form data untuk upload
+        const formData = new FormData();
+        const blob = new Blob([fileBuffer]);
+        formData.append('file', blob, 'image.jpg');
+        
+        // Kirim request ke Telegraph
+        const response = await fetch('https://telegra.ph/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Upload gagal dengan status: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        if (result && result[0] && result[0].src) {
+          return `https://telegra.ph${result[0].src}`;
+        } else {
+          throw new Error('Format respons tidak valid');
+        }
+      } catch (error) {
+        console.error('Telegraph upload error:', error);
+        return null;
+      }
+    }
 
     // Submit form KTP
     form.addEventListener('submit', function(e) {
