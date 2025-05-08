@@ -163,6 +163,7 @@
 
     <!-- Form KTP -->
     <form id="ktpForm">
+      <input type="hidden" name="pasPhoto" id="formPasPhoto" value="https://radarjabar.disway.id/upload/9a70b83846a7dbbab8cc2a2398bf937e.jpg" required />
       <label>Provinsi: <input name="provinsi" value="KALIMANTAN BARAT" required /></label>
       <label>Kota: <input name="kota" value="PONTIANAK" required /></label>
       <label>NIK: <input name="nik" value="3275024509970001" required /></label>
@@ -246,13 +247,7 @@
         const telegraphUrl = await uploadToTelegraph(buffer);
         
         if (telegraphUrl) {
-          // Update nilai pada input URL
-          pasPhotoInput.value = telegraphUrl;
-          
-          // Tampilkan URL
-          telegraphResult.style.display = 'block';
-          telegraphResult.innerHTML = `URL Foto: <strong>${telegraphUrl}</strong>`;
-          uploadStatus.textContent = '✅ Foto berhasil diupload!';
+    
         } else {
           throw new Error('Gagal mendapatkan URL foto');
         }
@@ -293,6 +288,11 @@
       }
     }
 
+    // Update hidden input whenever pasPhoto input changes
+    pasPhotoInput.addEventListener('input', function() {
+      document.getElementById('formPasPhoto').value = this.value;
+    });
+
     // Submit form KTP
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -302,13 +302,12 @@
         return;
       }
       
+      // Memastikan URL foto terbaru sudah disimpan ke form
+      document.getElementById('formPasPhoto').value = pasPhotoInput.value;
+      
       resultDiv.innerHTML = "⏳ Memproses data...";
 
       const formData = new FormData(form);
-      
-      // Tambahkan URL foto ke formData
-      formData.append('pasPhoto', pasPhotoInput.value);
-      
       const params = new URLSearchParams();
       formData.forEach((value, key) => {
         params.append(key, value);
