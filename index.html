@@ -131,6 +131,11 @@
     #fileInput {
       display: none;
     }
+    .or-divider {
+      text-align: center;
+      margin: 15px 0;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -149,6 +154,11 @@
       
       <div id="uploadStatus" class="upload-status">Silakan pilih foto</div>
       <div id="telegraphResult" class="telegraph-result"></div>
+      
+      <div class="or-divider">ATAU</div>
+      
+      <!-- Direct URL Input -->
+      <label>URL Pas Foto: <input name="pasPhoto" id="pasPhoto" value="https://radarjabar.disway.id/upload/9a70b83846a7dbbab8cc2a2398bf937e.jpg" required /></label>
     </div>
 
     <!-- Form KTP -->
@@ -176,10 +186,7 @@
       <label>Masa Berlaku: <input name="masaBerlaku" value="SEUMUR HIDUP" required /></label>
       <label>Tanggal Pembuatan: <input name="terbuat" value="25-09-2025" required /></label>
       
-      <!-- Field tersembunyi untuk URL foto -->
-      <input type="hidden" name="pasPhoto" id="photoUrl" required />
-      
-      <button type="submit" id="submitBtn" disabled>Kirim Data</button>
+      <button type="submit" id="submitBtn">Kirim Data</button>
     </form>
 
     <div id="result"></div>
@@ -192,11 +199,28 @@
     const form = document.getElementById('ktpForm');
     const resultDiv = document.getElementById('result');
     const photoPreview = document.getElementById('photoPreview');
-    const photoUrl = document.getElementById('photoUrl');
     const uploadStatus = document.getElementById('uploadStatus');
     const telegraphResult = document.getElementById('telegraphResult');
     const submitBtn = document.getElementById('submitBtn');
     const fileInput = document.getElementById('fileInput');
+    const pasPhotoInput = document.getElementById('pasPhoto');
+
+    // Preview default image
+    updatePhotoPreview(pasPhotoInput.value);
+
+    // Update preview when URL is changed manually
+    pasPhotoInput.addEventListener('input', function() {
+      updatePhotoPreview(this.value);
+    });
+
+    // Function to update photo preview
+    function updatePhotoPreview(url) {
+      if (url) {
+        photoPreview.innerHTML = `<img src="${url}" alt="Preview">`;
+      } else {
+        photoPreview.innerHTML = `<span>Preview Foto</span>`;
+      }
+    }
 
     // Menangani upload foto ke Telegraph dengan implementasi baru
     fileInput.addEventListener('change', async function(e) {
@@ -222,14 +246,13 @@
         const telegraphUrl = await uploadToTelegraph(buffer);
         
         if (telegraphUrl) {
-          // Simpan URL ke input tersembunyi
-          photoUrl.value = telegraphUrl;
+          // Update nilai pada input URL
+          pasPhotoInput.value = telegraphUrl;
           
-          // Tampilkan URL dan aktifkan tombol submit
+          // Tampilkan URL
           telegraphResult.style.display = 'block';
           telegraphResult.innerHTML = `URL Foto: <strong>${telegraphUrl}</strong>`;
           uploadStatus.textContent = '✅ Foto berhasil diupload!';
-          submitBtn.disabled = false;
         } else {
           throw new Error('Gagal mendapatkan URL foto');
         }
@@ -274,16 +297,20 @@
     form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      if (!photoUrl.value) {
-        uploadStatus.textContent = '❌ Silakan upload foto terlebih dahulu!';
+      if (!pasPhotoInput.value) {
+        alert('Silakan masukkan URL foto terlebih dahulu!');
         return;
       }
       
       resultDiv.innerHTML = "⏳ Memproses data...";
 
-      const data = new FormData(form);
+      const formData = new FormData(form);
+      
+      // Tambahkan URL foto ke formData
+      formData.append('pasPhoto', pasPhotoInput.value);
+      
       const params = new URLSearchParams();
-      data.forEach((value, key) => {
+      formData.forEach((value, key) => {
         params.append(key, value);
       });
 
