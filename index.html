@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <titleCiptaKTP</title>
+  <title>Form KTP Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     body {
@@ -151,17 +151,17 @@
       
       <!-- Direct URL Input -->
       <label>URL Pas Foto:
-        <input name="pasPhoto" id="pasPhoto" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlxI8696p-ZVJqcUrANX87hXdvcwfXOwtC7Q&s" required />
+        <input name="pasPhoto" id="pasPhoto" value="https://radarjabar.disway.id/upload/9a70b83846a7dbbab8cc2a2398bf937e.jpg" required />
       </label>
     </div>
 
     <!-- Form KTP -->
     <form id="ktpForm">
-      <input type="hidden" name="pasPhoto" id="formPasPhoto" value="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlxI8696p-ZVJqcUrANX87hXdvcwfXOwtC7Q&s" required />
+      <input type="hidden" name="pasPhoto" id="formPasPhoto" value="https://radarjabar.disway.id/upload/9a70b83846a7dbbab8cc2a2398bf937e.jpg" required />
       <label>Provinsi: <input name="provinsi" value="KALIMANTAN BARAT" required /></label>
       <label>Kota: <input name="kota" value="PONTIANAK" required /></label>
       <label>NIK: <input name="nik" value="3275024509970001" required /></label>
-      <label>Nama: <input name="nama" value="Ambaponti" required /></label>
+      <label>Nama: <input name="nama" value="Loid Forger" required /></label>
       <label>Tempat, Tanggal Lahir: <input name="ttl" value="pontianak, 25-09-2025" required /></label>
       <label>Jenis Kelamin:
         <select name="jenisKelamin">
@@ -226,30 +226,33 @@
       uploadStatus.innerHTML = '<div class="loading-spinner"></div> Mengupload foto...';
 
       try {
-        const formData = new FormData();
-        formData.append("image", file);
+        .then(async blob => {
+  const formData = new FormData();
+  formData.append("image", blob);
 
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKeyImgBB}`, {
-          method: "POST",
-          body: formData
-        });
+  const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKeyImgBB}`, {
+    method: "POST",
+    body: formData
+  });
 
-        const result = await response.json();
+  const result = await response.json();
 
-        if (result.success) {
-          const imageUrl = result.data.url;
-          pasPhotoInput.value = imageUrl;
-          document.getElementById('formPasPhoto').value = imageUrl;
-          updatePhotoPreview(imageUrl);
-          uploadStatus.innerHTML = '✅ Foto berhasil diupload!';
-        } else {
-          throw new Error('Upload gagal');
-        }
-      } catch (error) {
-        console.error('Upload ImgBB error:', error);
-        uploadStatus.textContent = '❌ Gagal mengupload foto. Silakan coba lagi.';
-      }
-    });
+  if (result.success) {
+    const imgURL = result.data.url;
+    resultDiv.innerHTML = `
+      <h3>Hasil Gambar KTP:</h3>
+      <img src="${imgURL}" alt="Gambar KTP" />
+      <a href="${imgURL}" download="ktp.png">
+        <button>Download Gambar</button>
+      </a>
+    `;
+  } else {
+    throw new Error("Upload ke ImgBB gagal");
+  }
+}
+}
+})
+;
 
     form.addEventListener('submit', function(e) {
       e.preventDefault();
