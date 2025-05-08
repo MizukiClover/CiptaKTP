@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Form KTP Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: url('https://images.unsplash.com/photo-1503264116251-35a269479413?auto=format&fit=crop&w=1400&q=80') no-repeat center center fixed;
+      background-size: cover;
+      backdrop-filter: brightness(60%);
+      color: #fff;
+    }
+    .container {
+      background-color: rgba(0, 0, 0, 0.6);
+      padding: 30px;
+      max-width: 700px;
+      margin: 50px auto;
+      border-radius: 15px;
+    }
+    h2 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #result {
+      margin-top: 30px;
+      text-align: center;
+    }
+    #result img {
+      max-width: 100%;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 2px solid white;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9em;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Form Input Data KTP</h2>
+    <form id="ktpForm">
+      <label>Provinsi: <input name="provinsi" value="KALIMANTAN BARAT" required /></label>
+      <label>Kota: <input name="kota" value="PONTIANAK" required /></label>
+      <label>NIK: <input name="nik" value="3275024509970001" required /></label>
+      <label>Nama: <input name="nama" value="loid forger" required /></label>
+      <label>Tempat, Tanggal Lahir: <input name="ttl" value="pontianak, 25-09-2025" required /></label>
+      <label>Jenis Kelamin:
+        <select name="jenisKelamin">
+          <option value="LAKI-LAKI" selected>LAKI-LAKI</option>
+          <option value="PEREMPUAN">PEREMPUAN</option>
+        </select>
+      </label>
+      <label>Golongan Darah: <input name="golonganDarah" value="-" /></label>
+      <label>Alamat: <input name="alamat" value="JL. RAYA SUI KAKAP" required /></label>
+      <label>RT/RW: <input name="rtRw" value="05/07" required /></label>
+      <label>Kelurahan/Desa: <input name="kelDesa" value="SUNGAI KAKAP" required /></label>
+      <label>Kecamatan: <input name="kecamatan" value="SUNGAI KAKAP" required /></label>
+      <label>Agama: <input name="agama" value="ISLAM" required /></label>
+      <label>Status Perkawinan: <input name="status" value="BELUM KAWIN" required /></label>
+      <label>Pekerjaan: <input name="pekerjaan" value="Siswa/Mahasiswa" required /></label>
+      <label>Kewarganegaraan: <input name="kewarganegaraan" value="WNI" required /></label>
+      <label>Masa Berlaku: <input name="masaBerlaku" value="SEUMUR HIDUP" required /></label>
+      <label>Tanggal Pembuatan: <input name="terbuat" value="25-09-2025" required /></label>
+      <label>URL Pas Foto: <input name="pasPhoto" value="https://radarjabar.disway.id/upload/9a70b83846a7dbbab8cc2a2398bf937e.jpg" required /></label>
+      <button type="submit">Kirim Data</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <div class="footer">© 2025 Mizuki Clover</div>
+
+  <script>
+    const form = document.getElementById('ktpForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      resultDiv.innerHTML = "⏳ Memproses data...";
+
+      const data = new FormData(form);
+      const params = new URLSearchParams();
+      data.forEach((value, key) => {
+        params.append(key, value);
+      });
+
+      const apiUrl = `https://fastrestapis.fasturl.cloud/maker/ktp?${params.toString()}`;
+
+      fetch(apiUrl)
+        .then(response => {
+          if (!response.ok) throw new Error('Gagal memuat gambar');
+          return response.blob();
+        })
+        .then(blob => {
+          const imgURL = URL.createObjectURL(blob);
+          resultDiv.innerHTML = `
+            <h3>Hasil Gambar KTP:</h3>
+            <img src="${imgURL}" alt="Gambar KTP" />
+            <a href="${imgURL}" download="ktp.png">
+              <button>Download Gambar</button>
+            </a>
+          `;
+        })
+        .catch(err => {
+          resultDiv.innerHTML = `<p style="color:red;">Terjadi kesalahan: ${err.message}</p>`;
+        });
+    });
+  </script>
+</body>
+</html>
